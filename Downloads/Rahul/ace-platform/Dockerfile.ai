@@ -1,0 +1,7 @@
+FROM python:3.11-slim
+WORKDIR /app
+COPY lt_common /app/lt_common
+COPY ai_service /app/ai_service
+RUN pip install --no-cache-dir fastapi uvicorn pydantic pydantic-settings sqlalchemy aiosqlite chromadb sentence-transformers
+ENV PYTHONPATH=/app
+CMD ["uvicorn", "ai_service.main:app", "--host", "0.0.0.0", "--port", "8100"]

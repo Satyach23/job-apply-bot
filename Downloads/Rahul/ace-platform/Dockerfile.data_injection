@@ -1,0 +1,7 @@
+FROM python:3.11-slim
+WORKDIR /app
+COPY lt_common /app/lt_common
+COPY data_injection_svc /app/data_injection_svc
+RUN pip install --no-cache-dir fastapi uvicorn pydantic pydantic-settings sqlalchemy aiosqlite httpx python-dateutil
+ENV PYTHONPATH=/app
+CMD ["uvicorn", "data_injection_svc.main:app", "--host", "0.0.0.0", "--port", "8001"]

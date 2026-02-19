@@ -1,0 +1,69 @@
+version: "3.8"
+
+volumes:
+  ace_data:
+
+services:
+  data_injection_svc:
+    build:
+      context: .
+      dockerfile: Dockerfile.data_injection
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:////app/data/ace_platform.db
+      - ENABLE_CASE_SQS_LISTENER=true
+    volumes:
+      - ace_data:/app/data
+
+  schedule_svc:
+    build:
+      context: .
+      dockerfile: Dockerfile.schedule
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:////app/data/ace_platform.db
+      - TASK_CENTER_URL=http://tracker_center_svc:8002
+      - AI_SERVICE_URL=http://ai_service:8100
+    volumes:
+      - ace_data:/app/data
+    depends_on:
+      - tracker_center_svc
+      - ai_service
+
+  tracker_center_svc:
+    build:
+      context: .
+      dockerfile: Dockerfile.tracker
+    ports:
+      - "8002:8002"
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:////app/data/ace_platform.db
+    volumes:
+      - ace_data:/app/data
+
+  ai_service:
+    build:
+      context: .
+      dockerfile: Dockerfile.ai
+    ports:
+      - "8100:8100"
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:////app/data/ace_platform.db
+      - CHROMA_PERSIST_DIR=/app/chroma_db
+    volumes:
+      - ace_data:/app/data
+      - ace_data:/app/chroma_db
+
+  mock_sources:
+    build:
+      context: .
+      dockerfile: Dockerfile.mock
+    ports:
+      - "8200:8200"
+
+  # Airflow (optional - use docker-compose.airflow.yml for full setup)
+  # airflow-webserver:
+  #   image: apache/airflow:2.7.3
+  #   ...

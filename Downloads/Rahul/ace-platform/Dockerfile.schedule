@@ -1,0 +1,7 @@
+FROM python:3.11-slim
+WORKDIR /app
+COPY lt_common /app/lt_common
+COPY schedule_svc /app/schedule_svc
+RUN pip install --no-cache-dir fastapi uvicorn pydantic pydantic-settings sqlalchemy aiosqlite httpx
+ENV PYTHONPATH=/app
+CMD ["uvicorn", "schedule_svc.main:app", "--host", "0.0.0.0", "--port", "8000"]

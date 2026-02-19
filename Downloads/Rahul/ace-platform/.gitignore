@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+.env
+*.db
+chroma_db/
+s3_mock/
+logs/
+*.log
+.idea/
+.vscode/
