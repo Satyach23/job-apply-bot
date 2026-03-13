@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Ask Documents{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Ask Documents</h1>
+    <p class="page-subtitle">
+        Ask a question about your documents. The RAG agent automatically
+        routes metadata questions to the structured database and content
+        questions to the semantic vector search.
+    </p>
+</div>
+
+<!-- Question form -->
+<div class="card" style="margin-bottom:1.5rem;">
+    <form method="post" action="/ask">
+        <div style="margin-bottom:1rem;">
+            <label for="question" style="display:block;font-weight:600;margin-bottom:.4rem;">
+                Your Question
+            </label>
+            <input
+                id="question"
+                name="question"
+                type="text"
+                placeholder="e.g. What is the title of the document? / What does section 3 say about contracts?"
+                value="{{ question or '' }}"
+                required
+                style="width:100%;padding:.6rem .8rem;border:1px solid #d1d5db;
+                       border-radius:6px;font-size:.95rem;box-sizing:border-box;"
+            />
+        </div>
+
+        <div style="margin-bottom:1rem;">
+            <label for="doc_id" style="display:block;font-weight:600;margin-bottom:.4rem;">
+                Filter by Document (optional)
+            </label>
+            <select
+                id="doc_id"
+                name="doc_id"
+                style="width:100%;padding:.6rem .8rem;border:1px solid #d1d5db;
+                       border-radius:6px;font-size:.95rem;background:#fff;"
+            >
+                <option value="">All documents</option>
+                {% for doc in documents %}
+                <option value="{{ doc.id }}"
+                    {% if selected_doc_id == doc.id %}selected{% endif %}>
+                    {{ doc.file_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Ask</button>
+    </form>
+</div>
+
+<!-- Answer panel -->
+{% if answer is defined %}
+<div class="card">
+    <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;">
+        <h2 style="margin:0;font-size:1.1rem;">Answer</h2>
+        {% if source_type == 'metadata' %}
+        <span style="background:#dbeafe;color:#1d4ed8;padding:.2rem .7rem;
+                     border-radius:999px;font-size:.78rem;font-weight:600;">
+            Source: Structured DB (metadata)
+        </span>
+        {% elif source_type == 'content' %}
+        <span style="background:#d1fae5;color:#065f46;padding:.2rem .7rem;
+                     border-radius:999px;font-size:.78rem;font-weight:600;">
+            Source: Vector Search (content)
+        </span>
+        {% else %}
+        <span style="background:#fef3c7;color:#92400e;padding:.2rem .7rem;
+                     border-radius:999px;font-size:.78rem;font-weight:600;">
+            No data source matched
+        </span>
+        {% endif %}
+    </div>
+
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;
+                padding:1rem;white-space:pre-wrap;line-height:1.7;font-size:.95rem;">
+        {{ answer }}
+    </div>
+
+    {% if sources %}
+    <details style="margin-top:1rem;">
+        <summary style="cursor:pointer;font-weight:600;font-size:.9rem;color:#6b7280;">
+            Retrieved snippets ({{ sources|length }})
+        </summary>
+        <ul style="margin:.6rem 0 0 1rem;padding:0;font-size:.85rem;color:#374151;">
+            {% for src in sources %}
+            <li style="margin-bottom:.4rem;line-height:1.5;">{{ src }}</li>
+            {% endfor %}
+        </ul>
+    </details>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Routing explanation -->
+<div class="card" style="margin-top:1.5rem;background:#f8faff;border:1px solid #e0e7ff;">
+    <h3 style="margin:0 0 .6rem;font-size:.95rem;color:#3730a3;">How routing works</h3>
+    <ul style="margin:0;padding-left:1.2rem;font-size:.88rem;color:#4b5563;line-height:1.8;">
+        <li><strong>Metadata questions</strong> (title, type, section names, LMI IDs)
+            &rarr; queries the <em>SQLite extracted_fields table</em></li>
+        <li><strong>Content questions</strong> (what does a section say, specific facts)
+            &rarr; semantic search over <em>embedded document chunks</em>
+            (backend: <code>{{ source_type or 'auto' }}</code>)</li>
+        <li>If no results are found, the agent returns
+            <strong>"No information found"</strong></li>
+    </ul>
+</div>
+{% endblock %}

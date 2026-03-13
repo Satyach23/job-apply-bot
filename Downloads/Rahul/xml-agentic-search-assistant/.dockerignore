@@ -1,0 +1,15 @@
+__pycache__
+*.pyc
+data/
+*.xml
+*.jpeg
+*.jpg
+*.png
+.git
+.vscode
+ARCHITECTURE.md
+README.md
+docker-compose.yml
+nginx.conf
+Dockerfile
+.dockerignore

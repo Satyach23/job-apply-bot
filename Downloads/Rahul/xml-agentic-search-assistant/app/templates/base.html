@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>{% block title %}{{ app_name }}{% endblock %} | {{ company_name }} {{ project_name }}</title>
+    <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- ==================== Sidebar Navigation ==================== -->
+        <nav class="sidebar">
+            <!-- Brand header with logo and project name -->
+            <div class="sidebar-header">
+                <img
+                    src="/static/logo.png"
+                    alt="{{ company_name }}"
+                    class="logo"
+                    onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+                />
+                <!-- Fallback if logo image fails to load -->
+                <div class="logo-fallback" style="display:none;">LN</div>
+                <div class="brand-text">
+                    <span class="brand-name">{{ company_name }}</span>
+                    <span class="project-badge">{{ project_name }}</span>
+                </div>
+            </div>
+
+            <!-- Navigation links -->
+            <div class="nav-links">
+                <a href="/" class="nav-link {% if active_page == 'home' %}active{% endif %}">
+                    <!-- Upload icon (Feather icons) -->
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    Upload &amp; Analyze
+                </a>
+                <a href="/documents" class="nav-link {% if active_page == 'documents' %}active{% endif %}">
+                    <!-- Document icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                    </svg>
+                    Documents
+                </a>
+            </div>
+
+            <!-- Footer -->
+            <div class="sidebar-footer">
+                {{ app_name }} v1.0
+            </div>
+        </nav>
+
+        <!-- ==================== Main Content Area ==================== -->
+        <main class="main-content">
+            <div class="content-with-chat">
+                <!-- Left: Analyzer (upload, results, documents) -->
+                <div class="analyzer-content">
+                    <!-- Error alert (shown when error is passed to template) -->
+                    {% if error %}
+                    <div class="alert alert-error">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="15" y1="9" x2="9" y2="15"/>
+                            <line x1="9" y1="9" x2="15" y2="15"/>
+                        </svg>
+                        {{ error }}
+                    </div>
+                    {% endif %}
+
+                    <!-- Success alert -->
+                    {% if success %}
+                    <div class="alert alert-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                        {{ success }}
+                    </div>
+                    {% endif %}
+
+                    <!-- Page-specific content injected here -->
+                    {% block content %}{% endblock %}
+                </div>
+
+                <!-- Right: AI Chatbot panel (always visible beside analyzer) -->
+                <aside class="chatbot-panel">
+                    <div class="chatbot-header">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2" width="22" height="22">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        <span>AI Chatbot</span>
+                    </div>
+                    <div class="chatbot-messages" id="chatbotMessages">
+                        <div class="chat-message chat-message-bot">
+                            <div class="chat-bubble">Ask a question about documents.</div>
+                        </div>
+                    </div>
+                    <div class="chatbot-input-wrap">
+                        <select id="chatbotDocFilter" class="chatbot-doc-filter" title="Filter by document">
+                            <option value="">All documents</option>
+                        </select>
+                        <div class="chatbot-input-row">
+                            <input type="text" id="chatbotInput" class="chatbot-input"
+                                   placeholder="e.g. What does the law say about Part 36?"
+                                   autocomplete="off"/>
+                            <button type="button" id="chatbotSend" class="chatbot-send" title="Send">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" stroke-width="2" width="18" height="18">
+                                    <line x1="22" y1="2" x2="11" y2="13"/>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </main>
+    </div>
+    <script>
+    (function() {
+        var messagesEl = document.getElementById('chatbotMessages');
+        var inputEl = document.getElementById('chatbotInput');
+        var sendBtn = document.getElementById('chatbotSend');
+        var docFilter = document.getElementById('chatbotDocFilter');
+
+        function appendMessage(role, text, sourceType) {
+            var wrap = document.createElement('div');
+            wrap.className = 'chat-message chat-message-' + (role === 'user' ? 'user' : 'bot');
+            var bubble = document.createElement('div');
+            bubble.className = 'chat-bubble';
+            bubble.textContent = text;
+            if (sourceType && role === 'bot') {
+                var label = sourceType === 'metadata' ? 'SQLite' : (sourceType === 'content' ? 'Vector' : (sourceType === 'both' ? 'Both' : ''));
+                if (label) {
+                    var badge = document.createElement('span');
+                    badge.className = 'chat-source-badge';
+                    badge.textContent = label;
+                    bubble.appendChild(document.createElement('br'));
+                    bubble.appendChild(badge);
+                }
+            }
+            wrap.appendChild(bubble);
+            messagesEl.appendChild(wrap);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function setLoading(loading) {
+            sendBtn.disabled = loading;
+            sendBtn.classList.toggle('loading', loading);
+        }
+
+        function loadDocuments() {
+            fetch('/api/documents').then(function(r) { return r.json(); }).then(function(docs) {
+                docFilter.innerHTML = '<option value="">All documents</option>';
+                docs.forEach(function(d) {
+                    var opt = document.createElement('option');
+                    opt.value = d.id;
+                    opt.textContent = d.file_name;
+                    docFilter.appendChild(opt);
+                });
+            }).catch(function() {});
+        }
+
+        function sendQuestion() {
+            var q = (inputEl.value || '').trim();
+            if (!q) return;
+            var docId = docFilter.value ? parseInt(docFilter.value, 10) : null;
+            appendMessage('user', q);
+            inputEl.value = '';
+            setLoading(true);
+            fetch('/api/ask', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: q, doc_id: docId })
+            }).then(function(r) { return r.json(); }).then(function(res) {
+                appendMessage('bot', res.answer || 'No information found.', res.source_type);
+                setLoading(false);
+            }).catch(function(err) {
+                appendMessage('bot', 'Sorry, something went wrong. Try again.');
+                setLoading(false);
+            });
+        }
+
+        sendBtn.addEventListener('click', sendQuestion);
+        inputEl.addEventListener('keydown', function(e) { if (e.key === 'Enter') sendQuestion(); });
+        loadDocuments();
+    })();
+    </script>
+</body>
+</html>

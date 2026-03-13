@@ -1,0 +1,47 @@
+# ===========================================================
+# ACP Document Analyzer — Docker Compose
+# ===========================================================
+# Single command to start the full application:
+#   docker compose up --build
+#
+# Services:
+#   backend  — FastAPI + Uvicorn (API + Jinja2 templates)
+#   frontend — Nginx reverse proxy (serves static assets,
+#              proxies /api and page requests to backend)
+# ===========================================================
+
+services:
+  # ---------------------------------------------------------
+  # Backend: FastAPI application (API + template rendering)
+  # ---------------------------------------------------------
+  backend:
+    build: .
+    container_name: acp-backend
+    env_file: .env
+    volumes:
+      # Persist SQLite database and uploads across restarts
+      - acp-data:/app/data
+    expose:
+      - "8000"
+    restart: unless-stopped
+
+  # ---------------------------------------------------------
+  # Frontend: Nginx reverse proxy
+  # Serves static files (CSS, logo) directly for performance.
+  # All other requests are proxied to the backend.
+  # ---------------------------------------------------------
+  frontend:
+    image: nginx:alpine
+    container_name: acp-frontend
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./static:/usr/share/nginx/static:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+# Named volume for persistent data (DB + uploaded files)
+volumes:
+  acp-data:

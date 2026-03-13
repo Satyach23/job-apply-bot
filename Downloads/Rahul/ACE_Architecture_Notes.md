@@ -90,6 +90,79 @@ This layer is **where new legal data comes from**. All case, legislation, and ci
 
 ---
 
+### Data Types We Deal With (What the Model / Platform Consumes)
+
+**We do not use news articles.** The platform consumes **legal primary sources** (cases, legislation) and **legal metadata/citation data** to keep **analytical content** (treatises, commentaries) up to date.
+
+| Data Type | Description | Where It Comes From | Examples |
+|-----------|-------------|---------------------|----------|
+| **Case documents** | Court opinions and decisions (full or summarized text). | DataLake, SQS Case Source, CASCI | US Supreme Court opinions, federal circuit decisions, state supreme court cases; headnotes, faceted summary, point of law. |
+| **Case metadata** | Information about a case (court, date, citation, jurisdiction). | DAND Profile, DataLake, CASCI | Court name, decision date, citation (e.g. 42 F.4th 100), jurisdiction (e.g. US Federal, California). |
+| **Legislation** | Statutes, amendments, new laws (text and metadata). | DataLake, CASCI | Statute title, citation, effect type (amended/new), effective date, summary. |
+| **Citation / treatment data** | How a case was treated (e.g. overruled, followed). | Shepard's Citations | Treatment letters: Overruled (O), Withdrawn (W), etc.; used as P0 signal for impact. |
+| **Content-update triggers** | Signals that analytical content may need updating. | SQS Books Queue | BooksMonitor triggers; references to publications or sections. |
+| **Analytical content** | Our own treatises, commentaries, practice guides (sections/chunks). | Internal repository, Solr | Book sections (e.g. Ch.5 § 5.02), title path, section text, citations within sections. |
+
+**Summary for stakeholders:**  
+- **Inputs to the model/platform:** Case documents and metadata, legislation and metadata, Shepard's citation data, and content-update triggers.  
+- **Not used:** News articles or general web content.  
+- **Output side:** The system identifies which **analytical sections** (our published legal commentary) need updates and creates editor tasks.
+
+**In short (for the diagram):** We deal with **new cases**, **legislation**, and **our own analytical articles/sections**. The data we take in are case documents, case metadata, legislation, Shepard's citation treatment data, and triggers—not news articles.
+
+---
+
+## Data Injection – For Business (What Data, How We Receive It, Why SQS)
+
+This section explains the **data injection** part in plain terms for business stakeholders: what data we receive, how we receive it, and why we run SQS listeners.
+
+### What does “receives” mean? (Push vs pull)
+
+- **Receiving** here means the data injection service **gets** new case data, legislation, or triggers so it can store and process them.
+- We receive data in **two ways**:
+  1. **Data is sent to us (push / trigger)** – Another system or pipeline **sends** a message or payload to us. For example, when a new case is available, a message is put on an **SQS queue**; our **SQS listener** picks it up. So we are **not** going out to “retrieve” at that moment—the **trigger sends the data** (or a reference to it) to us.
+  2. **We go and get it (pull)** – We **poll** or **call an API** to fetch data. For example, we poll **CASCI** for new case/legislation assignments, or we call **DataLake** to get document content when we have a reference.
+
+So “receives” covers both: **someone sends data to us (SQS, API)** and **we fetch data when we poll or call out**.
+
+### What type of data does Data Injection receive?
+
+| Data | What it is | Example |
+|------|------------|--------|
+| **New case data** | Court decisions/cases (and metadata) that may impact our analytical content. | A new federal circuit opinion; case name, citation, court, decision date, headnotes, summary. |
+| **Legislation** | New or amended statutes. | “ADA Amendments Act 2025”, effect type “amended”, effective date. |
+| **Content-update triggers** | Signals that a book/publication may need updates. | BooksMonitor says “this publication has new content or a trigger”; we then ingest or process the related data. |
+
+So: we receive **new cases**, **legislation**, and **triggers**—not news articles. Our **analytical articles** (treatise sections, commentary) are the content we **update** based on this incoming data.
+
+### How does Data Injection receive the data?
+
+| How | When we use it | What happens |
+|-----|----------------|--------------|
+| **SQS listeners** | When upstream systems **send** messages to a queue. | A message arrives on **SQS Case Source** (new case) or **SQS Books Queue** (content/trigger). Our service **listens** to the queue and, when a message appears, **receives** it and runs the ingestion flow (store case/legislation, run P0 filter, etc.). |
+| **API (POST)** | When a system or workflow **calls** our API with a payload. | Caller sends case or legislation data to **data_injection_svc** (e.g. `POST /api/v1/case_bundle/ingest`). We **receive** the payload and process it. |
+| **Polling (e.g. CASCI)** | When we need to **ask** another system “what’s new?” | An Airflow DAG (or similar) **polls** CASCI for new case/legislation assignments; for each assignment we **fetch** the actual data (from DataLake or elsewhere) and then **send** it into data injection (via API or internal call). So the “receive” step is when that data lands in our service. |
+
+So in the diagram, “receives” = **data lands in Data Injection** either because it was **sent** (SQS, API) or because we **fetched** it after a poll and then pushed it in.
+
+### Why do we run SQS listeners?
+
+- So we can **react as soon as** new case data or a content-update trigger is available, without having to poll constantly.
+- Upstream systems (e.g. case pipeline, BooksMonitor) **put a message on the queue** when something is ready. Our **SQS listener** is always running; when a message arrives, we **receive** it and run the ingestion and P0 filter. That way we don’t miss updates and we don’t have to ask “any new data?” over and over.
+
+### What happens after Data Injection receives the data?
+
+1. **Data arrives** (via SQS message, API call, or after we fetch following a poll).
+2. **Data Injection** stores the case or legislation (and any metadata) and runs **P0 filters**.
+3. **P0 filter** keeps only what we care about for updates, e.g.:
+   - **Cases:** recent (e.g. decision date within 90 days), certain courts, and/or with Shepard’s treatment signals (e.g. overruled, withdrawn).
+   - **Legislation:** e.g. effect type “amended” or “new”, effective date valid.
+4. Only **P0-passed** data goes forward to the rest of the pipeline (AI, RAG, task creation). The rest is not used for update tasks.
+
+So for business: **Data Injection receives new case data, legislation, and triggers (not news). It receives them via SQS (data sent to us), API (callers send to us), or after we poll and fetch. We run SQS listeners so we can react as soon as data is sent. After that, P0 filters ensure only recent, relevant cases and legislation drive updates to our analytical articles.**
+
+---
+
 ## Layer 3: Airflow DAGs / Workflow Orchestration Hub
 
 **Where in diagram:** Orange/yellow region in the middle-top.
@@ -162,13 +235,15 @@ Core business logic and APIs. Three main services plus a shared library.
 
 ### 4d. data_injection_svc (Port 8001)
 
+**For business:** This service **receives** new case data, legislation, and content-update triggers. It receives them either because **data is sent to us** (SQS messages, API POST) or because **we fetch** data after polling (e.g. CASCI). We run **SQS listeners** so we react as soon as a message arrives. After receiving, we run **P0 filters** so only recent, relevant cases and legislation move on. See **“Data Injection – For Business”** above for full detail.
+
 | Responsibility | Details |
 |----------------|---------|
-| **case_bundle** APIs | Ingest case data. |
+| **case_bundle** APIs | Ingest case data (received via API or after fetch). |
 | **legislation_bundle** APIs | Ingest legislation data. |
-| SQS listeners | CaseInjectionHandler, BooksMonitor (default on). |
+| SQS listeners | Listen to SQS Case Source and Books Queue; when a message is **sent** to the queue, we **receive** it and ingest (CaseInjectionHandler, BooksMonitor). |
 | Solr ETL | 5 stages: XML parse → Section extract → Level convert → Solr doc gen → Citation enrich (JCite). |
-| P0 filtering | Court level, decision date (90d), Shepard's treatment letters. |
+| P0 filtering | After receive: keep only cases/legislation that pass (e.g. court level, decision date within 90d, Shepard's letters). |
 
 ### Key Point
 

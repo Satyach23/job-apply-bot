@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% set active_page = "home" %}
+
+{% block title %}Upload Document{% endblock %}
+
+{% block content %}
+<!-- Page header -->
+<div class="page-header">
+    <h1>Document Analyzer</h1>
+    <p>Upload a document to extract structured metadata using AI-powered analysis.</p>
+</div>
+
+<!-- Upload card -->
+<div class="card">
+    <h2 class="card-title">Upload Document</h2>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <div class="upload-zone" onclick="this.querySelector('input[type=file]').click()">
+            <!-- Upload icon -->
+            <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <div class="upload-text">Click to select a file or drag and drop</div>
+            <div class="upload-formats">Supported: {{ supported_formats }}</div>
+            <input type="file" name="file" accept=".xml,.pdf,.docx,.rtf"
+                   style="margin-top:1rem;" required/>
+            <br/>
+            <button type="submit" class="btn btn-primary" style="margin-top:1rem;">
+                Upload &amp; Analyze
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Bulk-load sample XML documents -->
+<div class="card">
+    <h2 class="card-title">Load Sample XML Documents</h2>
+    <p style="margin-bottom:0.75rem;">
+        Load all built-in BF / FS / DR XML documents into the analyzer so the
+        AI chatbot can talk about <strong>all documents</strong>, not just one.
+    </p>
+    <form action="/load_samples" method="post">
+        <button type="submit" class="btn btn-secondary">
+            Load all sample XML documents
+        </button>
+    </form>
+</div>
+
+<!-- Recent documents list (only shown if documents exist) -->
+{% if documents %}
+<div class="card">
+    <h2 class="card-title">Recent Documents</h2>
+    <div class="doc-list">
+        {% for doc in documents[:5] %}
+        <div class="doc-card">
+            <div class="doc-info">
+                <div class="doc-icon">{{ doc.format | upper }}</div>
+                <div class="doc-details">
+                    <h3>{{ doc.file_name }}</h3>
+                    <div class="doc-meta">
+                        Processed: {{ doc.created_at }}
+                        <span class="badge badge-format">{{ doc.format | upper }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="doc-actions">
+                <a href="/results/{{ doc.id }}" class="btn btn-secondary btn-sm">
+                    View Results
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% if documents | length > 5 %}
+    <p style="margin-top:1rem;">
+        <a href="/documents" class="btn btn-secondary btn-sm">
+            View all {{ documents | length }} documents
+        </a>
+    </p>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

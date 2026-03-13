@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% set active_page = "documents" %}
+
+{% block title %}All Documents{% endblock %}
+
+{% block content %}
+<!-- Page header -->
+<div class="page-header">
+    <h1>Processed Documents</h1>
+    <p>All documents that have been analyzed by the system.</p>
+</div>
+
+{% if documents %}
+<!-- Document list -->
+<div class="card">
+    <div class="doc-list">
+        {% for doc in documents %}
+        <div class="doc-card">
+            <div class="doc-info">
+                <div class="doc-icon">{{ doc.format | upper }}</div>
+                <div class="doc-details">
+                    <h3>{{ doc.file_name }}</h3>
+                    <div class="doc-meta">
+                        Processed: {{ doc.created_at }}
+                        <span class="badge badge-format">
+                            {{ doc.format | upper }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="doc-actions">
+                <a href="/results/{{ doc.id }}"
+                   class="btn btn-secondary btn-sm">
+                    View Results
+                </a>
+                <form action="/delete/{{ doc.id }}"
+                      method="post"
+                      style="display:inline;"
+                      onsubmit="return confirm('Delete this document and its results?');">
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% else %}
+<!-- Empty state when no documents exist -->
+<div class="card">
+    <div class="empty-state">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        <h3>No documents yet</h3>
+        <p>Upload a document to get started with AI-powered analysis.</p>
+        <a href="/" class="btn btn-primary" style="margin-top:1rem;">
+            Upload Document
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

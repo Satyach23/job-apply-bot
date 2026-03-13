@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% set active_page = "results" %}
+
+{% block title %}Results — {{ document.file_name }}{% endblock %}
+
+{% block content %}
+<!-- Page header -->
+<div class="page-header">
+    <h1>Extraction Results</h1>
+    <p>AI-extracted metadata fields from the uploaded document.</p>
+</div>
+
+<!-- Document info card -->
+<div class="card">
+    <div class="doc-header">
+        <div class="doc-icon-lg">{{ document.format | upper }}</div>
+        <div class="doc-title">
+            <h2>{{ document.file_name }}</h2>
+            <div class="meta">
+                Format: {{ document.format | upper }}
+                &middot; Processed: {{ document.created_at }}
+            </div>
+        </div>
+        <a href="/" class="btn btn-secondary">Upload Another</a>
+    </div>
+</div>
+
+<!-- Stats row -->
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-value">{{ fields | length }}</div>
+        <div class="stat-label">Sections Found</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ document.format | upper }}</div>
+        <div class="stat-label">Format</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">5</div>
+        <div class="stat-label">Fields Extracted</div>
+    </div>
+</div>
+
+<!-- Extracted fields table -->
+<div class="card">
+    <div class="table-actions">
+        <h2 class="card-title" style="margin-bottom:0;">Extracted Fields</h2>
+        {% if fields %}
+        <button class="btn btn-secondary btn-sm" onclick="exportCSV()">
+            Export CSV
+        </button>
+        {% endif %}
+    </div>
+
+    {% if fields %}
+    <div style="overflow-x:auto;">
+        <table class="results-table" id="resultsTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Section</th>
+                    <th>Sub-section</th>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>LMI ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for field in fields %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ field.section }}</td>
+                    <td>{{ field.sub_section }}</td>
+                    <td>{{ field.title }}</td>
+                    <td>{{ field.type }}</td>
+                    <td>{{ field.lmi_id }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>No fields extracted</h3>
+        <p>The analyzer could not extract structured fields from this document.</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+/**
+ * Export the results table as a downloadable CSV file.
+ *
+ * Iterates through all table rows (header + data), escapes
+ * cell values for CSV safety, and triggers a browser download.
+ */
+function exportCSV() {
+    var table = document.getElementById('resultsTable');
+    if (!table) return;
+
+    var rows = table.querySelectorAll('tr');
+    var csvLines = [];
+
+    rows.forEach(function(row) {
+        var cells = row.querySelectorAll('th, td');
+        var rowData = Array.from(cells).map(function(cell) {
+            // Escape double quotes and wrap each cell in quotes
+            var text = cell.textContent.trim().replace(/"/g, '""');
+            return '"' + text + '"';
+        });
+        csvLines.push(rowData.join(','));
+    });
+
+    // Create a Blob and trigger download
+    var blob = new Blob([csvLines.join('\n')], { type: 'text/csv' });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = '{{ document.file_name }}_results.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+}
+</script>
+{% endblock %}

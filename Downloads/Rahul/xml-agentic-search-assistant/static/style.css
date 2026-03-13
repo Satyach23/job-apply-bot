@@ -1,0 +1,752 @@
+/* ==========================================================
+   ACP Document Analyzer — LexisNexis Branded Stylesheet
+   ==========================================================
+   Color palette and layout designed to match LexisNexis brand
+   guidelines. Uses CSS custom properties for easy theming.
+   ========================================================== */
+
+/* -------------------- Theme Variables -------------------- */
+:root {
+    /* LexisNexis brand colors */
+    --ln-red: #E40046;
+    --ln-red-dark: #B8003A;
+    --ln-red-light: #FF1A5E;
+    --ln-navy: #1A1A2E;
+    --ln-navy-light: #2D2D44;
+
+    /* Neutral palette */
+    --white: #FFFFFF;
+    --gray-50: #F8FAFC;
+    --gray-100: #F1F5F9;
+    --gray-200: #E2E8F0;
+    --gray-300: #CBD5E1;
+    --gray-400: #94A3B8;
+    --gray-500: #64748B;
+    --gray-600: #475569;
+    --gray-700: #334155;
+    --gray-800: #1E293B;
+    --gray-900: #0F172A;
+
+    /* Semantic colors */
+    --success: #22C55E;
+    --warning: #F59E0B;
+    --error: #EF4444;
+
+    /* Layout */
+    --sidebar-width: 260px;
+    --radius: 10px;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --transition: 0.2s ease;
+}
+
+/* -------------------- Reset & Base -------------------- */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', system-ui,
+                 -apple-system, sans-serif;
+    background: var(--gray-50);
+    color: var(--gray-800);
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+/* -------------------- App Layout -------------------- */
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* -------------------- Sidebar -------------------- */
+.sidebar {
+    width: var(--sidebar-width);
+    background: var(--ln-navy);
+    color: var(--white);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 100;
+}
+
+/* Brand header: logo + company name + project badge */
+.sidebar-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.sidebar-header .logo {
+    height: 32px;
+    width: auto;
+}
+
+/* Fallback when logo image fails to load */
+.logo-fallback {
+    width: 32px;
+    height: 32px;
+    background: var(--ln-red);
+    border-radius: 6px;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 800;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.brand-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--white);
+    letter-spacing: -0.02em;
+}
+
+/* Red badge showing project name (ACP) */
+.project-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--ln-red);
+    background: rgba(228, 0, 70, 0.15);
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    width: fit-content;
+    margin-top: 0.15rem;
+    letter-spacing: 0.05em;
+}
+
+/* Navigation links in sidebar */
+.nav-links {
+    padding: 1rem 0;
+    flex: 1;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 1.5rem;
+    color: var(--gray-400);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all var(--transition);
+    border-left: 3px solid transparent;
+}
+
+.nav-link:hover {
+    color: var(--white);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Active nav link: white text + red left border */
+.nav-link.active {
+    color: var(--white);
+    background: rgba(255, 255, 255, 0.08);
+    border-left-color: var(--ln-red);
+}
+
+.nav-link svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.sidebar-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.75rem;
+    color: var(--gray-500);
+}
+
+/* -------------------- Main Content -------------------- */
+.main-content {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    padding: 2rem;
+    min-height: 100vh;
+}
+
+/* -------------------- Page Header -------------------- */
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    letter-spacing: -0.02em;
+}
+
+.page-header p {
+    color: var(--gray-500);
+    margin-top: 0.25rem;
+    font-size: 0.95rem;
+}
+
+/* -------------------- Cards -------------------- */
+.card {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 1rem;
+}
+
+/* -------------------- Upload Zone -------------------- */
+.upload-zone {
+    border: 2px dashed var(--gray-300);
+    border-radius: var(--radius);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    background: var(--gray-50);
+    transition: all var(--transition);
+    cursor: pointer;
+}
+
+.upload-zone:hover {
+    border-color: var(--ln-red);
+    background: rgba(228, 0, 70, 0.02);
+}
+
+.upload-zone .upload-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 1rem;
+    color: var(--gray-400);
+}
+
+.upload-zone .upload-text {
+    font-size: 1rem;
+    color: var(--gray-600);
+    margin-bottom: 0.5rem;
+}
+
+.upload-zone .upload-formats {
+    font-size: 0.85rem;
+    color: var(--gray-400);
+}
+
+/* -------------------- Buttons -------------------- */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+    transition: all var(--transition);
+    line-height: 1.4;
+}
+
+/* Primary button: LexisNexis red */
+.btn-primary {
+    background: var(--ln-red);
+    color: var(--white);
+}
+
+.btn-primary:hover {
+    background: var(--ln-red-dark);
+    box-shadow: 0 2px 8px rgba(228, 0, 70, 0.3);
+}
+
+/* Secondary button: light gray border */
+.btn-secondary {
+    background: var(--gray-100);
+    color: var(--gray-700);
+    border: 1px solid var(--gray-200);
+}
+
+.btn-secondary:hover {
+    background: var(--gray-200);
+}
+
+/* Danger button: red outline */
+.btn-danger {
+    background: transparent;
+    color: var(--error);
+    border: 1px solid var(--error);
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+}
+
+.btn-danger:hover {
+    background: var(--error);
+    color: var(--white);
+}
+
+.btn-sm {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+}
+
+/* -------------------- Results Table -------------------- */
+.results-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.9rem;
+}
+
+/* Dark navy header row */
+.results-table thead {
+    background: var(--ln-navy);
+    color: var(--white);
+}
+
+.results-table th {
+    padding: 0.85rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* Rounded top corners on first/last header cells */
+.results-table th:first-child {
+    border-radius: var(--radius) 0 0 0;
+}
+
+.results-table th:last-child {
+    border-radius: 0 var(--radius) 0 0;
+}
+
+.results-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--gray-200);
+    color: var(--gray-700);
+    vertical-align: top;
+}
+
+.results-table tbody tr:hover {
+    background: var(--gray-50);
+}
+
+/* Rounded bottom corners on last row */
+.results-table tbody tr:last-child td:first-child {
+    border-radius: 0 0 0 var(--radius);
+}
+
+.results-table tbody tr:last-child td:last-child {
+    border-radius: 0 0 var(--radius) 0;
+}
+
+/* -------------------- Document List -------------------- */
+.doc-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.doc-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    box-shadow: var(--shadow);
+    transition: all var(--transition);
+}
+
+.doc-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--gray-300);
+}
+
+.doc-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Format badge icon (XML, PDF, etc.) */
+.doc-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--ln-red);
+    color: var(--white);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+.doc-details h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+.doc-details .doc-meta {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+    margin-top: 0.15rem;
+}
+
+.doc-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+/* -------------------- Alerts -------------------- */
+.alert {
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius);
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.alert-error {
+    background: #FEF2F2;
+    color: #991B1B;
+    border: 1px solid #FECACA;
+}
+
+.alert-success {
+    background: #F0FDF4;
+    color: #166534;
+    border: 1px solid #BBF7D0;
+}
+
+/* -------------------- Badges -------------------- */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge-format {
+    background: rgba(228, 0, 70, 0.1);
+    color: var(--ln-red);
+}
+
+/* -------------------- Document Info Header -------------------- */
+.doc-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+/* Large format badge for results page */
+.doc-header .doc-icon-lg {
+    width: 56px;
+    height: 56px;
+    background: var(--ln-red);
+    color: var(--white);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+.doc-header .doc-title {
+    flex: 1;
+}
+
+.doc-header .doc-title h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--gray-900);
+}
+
+.doc-header .doc-title .meta {
+    font-size: 0.85rem;
+    color: var(--gray-500);
+    margin-top: 0.25rem;
+}
+
+/* -------------------- Stats Row -------------------- */
+.stats-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    flex: 1;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    text-align: center;
+    box-shadow: var(--shadow);
+}
+
+/* Large red number */
+.stat-card .stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--ln-red);
+}
+
+.stat-card .stat-label {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+    margin-top: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+}
+
+/* -------------------- Empty State -------------------- */
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--gray-500);
+}
+
+.empty-state svg {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 1rem;
+    color: var(--gray-300);
+}
+
+.empty-state h3 {
+    font-size: 1.1rem;
+    color: var(--gray-700);
+    margin-bottom: 0.5rem;
+}
+
+/* -------------------- Table Actions Bar -------------------- */
+.table-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+/* -------------------- Analyzer + Chatbot Layout -------------------- */
+.content-with-chat {
+    display: flex;
+    gap: 0;
+    width: 100%;
+    max-width: 100%;
+    min-height: calc(100vh - 4rem);
+}
+
+.analyzer-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.chatbot-panel {
+    width: 320px;
+    flex-shrink: 0;
+    background: var(--white);
+    border-left: 1px solid var(--gray-200);
+    display: flex;
+    flex-direction: column;
+    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.04);
+}
+
+.chatbot-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--gray-200);
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--gray-900);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--gray-50);
+}
+
+.chatbot-header svg {
+    color: var(--ln-red);
+}
+
+.chatbot-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-height: 160px;
+    max-height: 60vh;
+}
+
+.chat-message {
+    display: flex;
+    width: 100%;
+}
+
+.chat-message-user {
+    justify-content: flex-end;
+}
+
+.chat-message-bot {
+    justify-content: flex-start;
+}
+
+.chat-bubble {
+    max-width: 90%;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.chat-message-user .chat-bubble {
+    background: var(--ln-red);
+    color: var(--white);
+    border-bottom-right-radius: 4px;
+}
+
+.chat-message-bot .chat-bubble {
+    background: var(--gray-100);
+    color: var(--gray-800);
+    border: 1px solid var(--gray-200);
+    border-bottom-left-radius: 4px;
+}
+
+.chat-source-badge {
+    display: inline-block;
+    margin-top: 0.35rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--gray-500);
+}
+
+.chatbot-input-wrap {
+    padding: 1rem;
+    border-top: 1px solid var(--gray-200);
+    background: var(--gray-50);
+}
+
+.chatbot-doc-filter {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    background: var(--white);
+    color: var(--gray-700);
+}
+
+.chatbot-input-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.chatbot-input {
+    flex: 1;
+    padding: 0.65rem 1rem;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color var(--transition);
+}
+
+.chatbot-input:focus {
+    border-color: var(--ln-red);
+}
+
+.chatbot-send {
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 8px;
+    background: var(--ln-red);
+    color: var(--white);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--transition);
+}
+
+.chatbot-send:hover:not(:disabled) {
+    background: var(--ln-red-dark);
+}
+
+.chatbot-send:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.chatbot-send.loading {
+    pointer-events: none;
+}
+
+/* -------------------- Responsive -------------------- */
+@media (max-width: 768px) {
+    .sidebar {
+        display: none;
+    }
+    .main-content {
+        margin-left: 0;
+    }
+    .stats-row {
+        flex-direction: column;
+    }
+    .doc-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    .content-with-chat {
+        flex-direction: column;
+    }
+    .chatbot-panel {
+        width: 100%;
+        max-height: 45vh;
+        border-left: none;
+        border-top: 1px solid var(--gray-200);
+    }
+}
